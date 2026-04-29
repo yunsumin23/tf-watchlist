@@ -6,7 +6,12 @@ from datetime import datetime, timezone
 SEASON   = "s10"
 PLATFORM = "crossplay"
 
+# GCS 직접 접근 (캐시 없음, 최우선)
+# 필드명: f=fame, r=rank, c=cashouts, name=name
 GCS_URL = "https://storage.googleapis.com/embark-discovery-leaderboard/leaderboard-crossplay-discovery-live.json"
+
+# 커뮤니티 API (폴백)
+# 필드명: fame, rank, cashouts, name
 API_URL = f"https://api.the-finals-leaderboard.com/v1/leaderboard/{SEASON}/{PLATFORM}"
 
 HISTORY_PATH  = "data/history.json"
@@ -25,71 +30,43 @@ def save_json(path, data):
         json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
 
 def find_player_exact(entries, tag):
-    """완전 일치만 허용. #번호 포함 정확한 매칭."""
+    """완전 일치만. 대소문자 무시."""
     tag_lower = tag.lower()
     return next((e for e in entries if e.get("name","").lower() == tag_lower), None)
 
-def get_fame(entry):
-    """
-    가능한 모든 필드명 시도. 0도 유효한 값으로 처리.
-    GCS는 'rs', 'rankScore', 'fame' 중 하나를 씀.
-    """
+def extract_fields(entry, source):
+    """소스에 따라 올바른 필드명으로 값 추출."""
     if entry is None:
-        return None
-    for key in ("fame", "rs", "rankScore", "rank_score", "score", "rankingScore", "points"):
-        val = entry.get(key)
-        if val is not None:
-            return val
-    return None
-
-def get_rank(entry):
-    if entry is None:
-        return None
-    for key in ("rank", "r", "position", "leaderboardRank"):
-        val = entry.get(key)
-        if val is not None:
-            return val
-    return None
-
-def get_cashouts(entry):
-    if entry is None:
-        return None
-    for key in ("cashouts", "c", "totalCashouts", "cash"):
-        val = entry.get(key)
-        if val is not None:
-            return val
-    return None
+        return None, None, None, None
+    if source == "GCS":
+        # GCS 필드: f, r, c, name
+        fame     = entry.get("f")
+        rank     = entry.get("r")
+        cashouts = entry.get("c")
+    else:
+        # API 필드: fame, rank, cashouts
+        fame     = entry.get("fame") if entry.get("fame") is not None else entry.get("rankScore")
+        rank     = entry.get("rank")
+        cashouts = entry.get("cashouts") if entry.get("cashouts") is not None else entry.get("totalCashouts")
+    api_name = entry.get("name")
+    return fame, rank, cashouts, api_name
 
 def fetch_gcs():
     print("  [GCS] 직접 접근 시도...")
     resp = requests.get(GCS_URL, timeout=30)
     resp.raise_for_status()
     data = resp.json()
-
-    # GCS 응답 구조 디버그 출력 (첫 실행 시 구조 파악용)
     if isinstance(data, dict):
-        print(f"  [GCS] 최상위 키: {list(data.keys())[:10]}")
         entries = data.get("data") or data.get("leaderboard") or data.get("entries") or data.get("players")
         if entries is None:
-            # 값이 리스트인 키 찾기
-            for k, v in data.items():
+            for v in data.values():
                 if isinstance(v, list) and len(v) > 0:
                     entries = v
-                    print(f"  [GCS] 리스트 키 발견: '{k}' ({len(v)}개)")
                     break
-        if entries is None:
-            entries = data
     else:
         entries = data
-
     if not isinstance(entries, list) or len(entries) == 0:
         raise ValueError("GCS 응답에서 리스트 찾기 실패")
-
-    # 첫 번째 엔트리 구조 출력 (필드명 파악)
-    if entries:
-        print(f"  [GCS] 샘플 엔트리 키: {list(entries[0].keys())}")
-        print(f"  [GCS] 샘플 엔트리 값: {dict(list(entries[0].items())[:8])}")
-
     print(f"  [GCS] 성공: {len(entries)}명")
     return entries, "GCS"
 
@@ -101,12 +78,6 @@ def fetch_api():
     entries = data.get("data", data) if isinstance(data, dict) else data
     if not isinstance(entries, list) or len(entries) == 0:
         raise ValueError("API 응답이 비어있음")
-
-    # API 샘플도 출력
-    if entries:
-        print(f"  [API] 샘플 엔트리 키: {list(entries[0].keys())}")
-        print(f"  [API] 샘플 엔트리 값: {dict(list(entries[0].items())[:8])}")
-
     print(f"  [API] 성공: {len(entries)}명")
     return entries, "API"
 
@@ -139,20 +110,16 @@ def main():
     not_found_list = []
 
     for tag in players:
-        # 완전 일치만 허용
-        entry    = find_player_exact(entries, tag)
-        fame     = get_fame(entry)
-        rank     = get_rank(entry)
-        cashouts = get_cashouts(entry)
-        api_name = entry.get("name") if entry else None
+        entry = find_player_exact(entries, tag)
+        fame, rank, cashouts, api_name = extract_fields(entry, source)
 
         if not entry:
             not_found_list.append(tag)
-            print(f"  미등재(완전일치없음): {tag}")
+            print(f"  미등재: {tag}")
             continue
 
         if fame is None:
-            print(f"  ⚠ fame필드없음: {tag} | 엔트리: {dict(list(entry.items())[:6])}")
+            print(f"  ⚠ fame없음: {tag}")
             continue
 
         snap = {
@@ -180,7 +147,7 @@ def main():
     save_json(HISTORY_PATH, history)
     print(f"\n완료. 변화 {len(updated)}건 / 미등재 {len(not_found_list)}명 / 전체 {len(players)}명")
     if not_found_list:
-        print(f"  미등재 목록: {not_found_list}")
+        print(f"  미등재: {not_found_list}")
 
 if __name__ == "__main__":
     main()
