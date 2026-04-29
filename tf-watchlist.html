@@ -1,0 +1,2032 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE FINALS — WATCHLIST</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg0: #050709;
+  --bg1: #090d12;
+  --bg2: #0e1520;
+  --bg3: #131d2a;
+  --border: #1a2535;
+  --border-bright: #263545;
+  --accent: #00e5a0;
+  --accent-dim: #00664a;
+  --accent-glow: rgba(0,229,160,0.18);
+  --amber: #ffaa22;
+  --amber-dim: #7a4f00;
+  --danger: #ff3b3b;
+  --danger-dim: #6b0000;
+  --danger-glow: rgba(255,59,59,0.15);
+  --blue: #4aa8ff;
+  --text: #8facc4;
+  --text-mid: #b8cfe0;
+  --text-bright: #e8f2fa;
+  --mono: 'Share Tech Mono', monospace;
+  --sans: 'Rajdhani', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg0);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scanline overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── HEADER ─────────────────────────────────────────── */
+#header {
+  background: linear-gradient(180deg, #0c1520 0%, var(--bg1) 100%);
+  border-bottom: 1px solid var(--border-bright);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+#logo {
+  font-family: var(--mono);
+  font-size: 18px;
+  color: var(--accent);
+  letter-spacing: 2px;
+  text-shadow: 0 0 12px var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#logo span { color: var(--text); opacity: 0.5; }
+
+#header-stats {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  display: flex;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+#header-stats .hs-item { display: flex; flex-direction: column; gap: 1px; }
+#header-stats .hs-label { opacity: 0.4; font-size: 9px; letter-spacing: 1px; }
+#header-stats .hs-val { color: var(--text-mid); }
+#header-stats .hs-val.green { color: var(--accent); }
+#header-stats .hs-val.amber { color: var(--amber); }
+#header-stats .hs-val.danger { color: var(--danger); }
+
+.spacer { flex: 1; }
+
+#header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ── BUTTONS ────────────────────────────────────────── */
+.btn {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--border-bright);
+  background: var(--bg2);
+  color: var(--text-mid);
+  padding: 6px 14px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--accent-dim); color: var(--accent); background: var(--bg3); }
+.btn.primary { border-color: var(--accent-dim); background: rgba(0,229,160,0.08); color: var(--accent); }
+.btn.primary:hover { background: rgba(0,229,160,0.18); box-shadow: 0 0 12px rgba(0,229,160,0.2); }
+.btn.danger { border-color: var(--danger-dim); color: var(--danger); }
+.btn.danger:hover { background: var(--danger-glow); }
+.btn.amber { border-color: var(--amber-dim); color: var(--amber); }
+.btn.amber:hover { background: rgba(255,170,34,0.1); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn svg { width: 13px; height: 13px; fill: currentColor; flex-shrink: 0; }
+
+/* ── POLL CONTROLS ──────────────────────────────────── */
+#poll-bar {
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+#poll-bar label { font-size: 12px; color: var(--text); font-weight: 600; letter-spacing: 0.5px; }
+#poll-bar select, #poll-bar input[type=number] {
+  background: var(--bg2);
+  border: 1px solid var(--border-bright);
+  color: var(--text-mid);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 2px;
+  outline: none;
+}
+#poll-bar select:focus, #poll-bar input:focus { border-color: var(--accent-dim); }
+
+#poll-countdown {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+  padding: 4px 10px;
+  border: 1px solid var(--accent-dim);
+  background: var(--accent-glow);
+  border-radius: 2px;
+  min-width: 80px;
+  text-align: center;
+}
+#poll-countdown.paused { color: var(--text); border-color: var(--border); background: none; }
+
+#last-poll-time { font-family: var(--mono); font-size: 11px; color: var(--text); opacity: 0.5; }
+
+.toggle-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  border: 1px solid var(--border-bright);
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.toggle-btn.on { border-color: var(--accent-dim); color: var(--accent); background: var(--accent-glow); }
+.toggle-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+/* ── FILTER/SORT BAR ────────────────────────────────── */
+#filter-bar {
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+}
+.filter-btn {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.12s;
+}
+.filter-btn.active { border-color: var(--accent-dim); color: var(--accent); background: var(--accent-glow); }
+.filter-sep { width: 1px; height: 20px; background: var(--border-bright); }
+
+#search-input {
+  background: var(--bg2);
+  border: 1px solid var(--border-bright);
+  color: var(--text-mid);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 2px;
+  outline: none;
+  width: 180px;
+}
+#search-input:focus { border-color: var(--accent-dim); }
+
+#sort-select {
+  background: var(--bg2);
+  border: 1px solid var(--border-bright);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 2px;
+  outline: none;
+}
+
+/* ── GRID ───────────────────────────────────────────── */
+#grid-container {
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+#empty-state {
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text);
+  opacity: 0.35;
+  font-size: 14px;
+  font-family: var(--mono);
+  letter-spacing: 1px;
+}
+
+/* ── PLAYER CARD ────────────────────────────────────── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  position: relative;
+  transition: border-color 0.2s;
+  overflow: hidden;
+}
+
+/* Corner brackets */
+.card::before, .card::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  opacity: 0.5;
+  z-index: 1;
+  pointer-events: none;
+}
+.card::before {
+  top: 0; right: 0;
+  border-top: 1px solid var(--accent-dim);
+  border-right: 1px solid var(--accent-dim);
+}
+.card::after {
+  bottom: 0; left: 0;
+  border-bottom: 1px solid var(--accent-dim);
+  border-left: 1px solid var(--accent-dim);
+}
+.card:hover { border-color: var(--border-bright); }
+.card.status-confirmed { border-color: rgba(255,59,59,0.3); }
+.card.status-confirmed::before, .card.status-confirmed::after { border-color: var(--danger); }
+.card.status-suspicious { border-color: rgba(255,170,34,0.25); }
+.card.status-suspicious::before, .card.status-suspicious::after { border-color: var(--amber); }
+
+/* Active pulse indicator */
+.card.just-active { animation: pulse-active 0.8s ease-out; }
+@keyframes pulse-active {
+  0% { box-shadow: 0 0 0 0 rgba(0,229,160,0.5); }
+  100% { box-shadow: 0 0 0 20px rgba(0,229,160,0); }
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 2px;
+  border: 1px solid var(--border-bright);
+  background: var(--bg3);
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 18px;
+  color: var(--text);
+  position: relative;
+  cursor: pointer;
+}
+.card-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.card-avatar:hover::after {
+  content: '✎';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.card-info { flex: 1; min-width: 0; }
+
+.card-tag {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text-bright);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-tag .tag-hash { color: var(--text); opacity: 0.45; }
+
+.card-alias {
+  font-size: 11px;
+  color: var(--text);
+  margin-top: 2px;
+  font-style: italic;
+  opacity: 0.7;
+}
+.card-alias:empty { display: none; }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 2px 7px;
+  border-radius: 2px;
+  margin-top: 5px;
+}
+.status-confirmed .status-badge { background: var(--danger-glow); border: 1px solid rgba(255,59,59,0.4); color: var(--danger); }
+.status-suspicious .status-badge { background: rgba(255,170,34,0.1); border: 1px solid rgba(255,170,34,0.35); color: var(--amber); }
+.status-watching .status-badge { background: rgba(74,168,255,0.08); border: 1px solid rgba(74,168,255,0.25); color: var(--blue); }
+.status-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+.card-actions-top {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+/* ── CARD STATS ─────────────────────────────────────── */
+.card-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.stat-cell {
+  background: var(--bg2);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stat-label { font-size: 9px; letter-spacing: 1px; color: var(--text); opacity: 0.45; font-weight: 600; }
+.stat-val {
+  font-family: var(--mono);
+  font-size: 16px;
+  color: var(--text-bright);
+  white-space: nowrap;
+}
+.stat-val.not-found { font-size: 12px; color: var(--text); opacity: 0.35; }
+.stat-delta {
+  font-family: var(--mono);
+  font-size: 10px;
+}
+.stat-delta.up { color: var(--accent); }
+.stat-delta.down { color: var(--danger); }
+.stat-delta.neutral { color: var(--text); opacity: 0.35; }
+
+/* ── LAST ACTIVE ────────────────────────────────────── */
+.card-activity {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--text);
+  opacity: 0.2;
+}
+.activity-dot.recent { background: var(--accent); opacity: 1; box-shadow: 0 0 6px var(--accent); animation: blink 2s ease-in-out infinite; }
+.activity-dot.today { background: var(--amber); opacity: 1; }
+.activity-dot.checking { background: var(--blue); opacity: 0.7; }
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.activity-text {
+  font-family: var(--mono);
+  font-size: 11px;
+  flex: 1;
+}
+.activity-text .active-time { color: var(--accent); }
+.activity-text .today-time { color: var(--amber); }
+.activity-text .never { color: var(--text); opacity: 0.3; }
+
+/* ── FAME SPARKLINE ─────────────────────────────────── */
+.card-sparkline {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.spark-label { font-size: 9px; letter-spacing: 1px; color: var(--text); opacity: 0.35; font-weight: 600; white-space: nowrap; }
+.spark-svg { flex: 1; height: 30px; overflow: visible; }
+
+/* ── NOTES ──────────────────────────────────────────── */
+.card-notes {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.card-notes textarea {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  resize: none;
+  line-height: 1.5;
+  min-height: 28px;
+  max-height: 80px;
+}
+.card-notes textarea::placeholder { opacity: 0.25; }
+
+/* ── NICKNAME HISTORY ───────────────────────────────── */
+.card-nickhistory {
+  padding: 4px 12px 6px;
+  border-bottom: 1px solid var(--border);
+  display: none;
+}
+.card-nickhistory.visible { display: block; }
+.nickhistory-title { font-size: 9px; letter-spacing: 1px; color: var(--text); opacity: 0.35; font-weight: 600; margin-bottom: 4px; }
+.nick-entry {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  opacity: 0.65;
+}
+.nick-entry .nick-name { color: var(--text-mid); }
+.nick-entry .nick-date { font-size: 9px; opacity: 0.5; }
+
+/* ── CARD FOOTER ────────────────────────────────────── */
+.card-footer {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  gap: 4px;
+}
+.card-footer .btn { font-size: 11px; padding: 4px 8px; }
+.card-added { font-family: var(--mono); font-size: 9px; color: var(--text); opacity: 0.25; margin-left: auto; }
+
+/* ── MODAL ──────────────────────────────────────────── */
+#modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+#modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border-bright);
+  border-radius: 2px;
+  width: 420px;
+  max-width: 95vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+}
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-title { font-size: 16px; font-weight: 700; color: var(--text-bright); letter-spacing: 1px; }
+.modal-close { background: none; border: none; color: var(--text); cursor: pointer; font-size: 18px; opacity: 0.5; }
+.modal-close:hover { opacity: 1; }
+.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--text); opacity: 0.6; }
+.form-input {
+  background: var(--bg3);
+  border: 1px solid var(--border-bright);
+  color: var(--text-bright);
+  font-family: var(--mono);
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 2px;
+  outline: none;
+  width: 100%;
+}
+.form-input:focus { border-color: var(--accent-dim); }
+.form-hint { font-size: 10px; color: var(--text); opacity: 0.4; font-family: var(--mono); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.status-select {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.status-opt {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-radius: 2px;
+  transition: all 0.12s;
+  color: var(--text);
+}
+.status-opt[data-status="confirmed"].selected { border-color: rgba(255,59,59,0.5); background: var(--danger-glow); color: var(--danger); }
+.status-opt[data-status="suspicious"].selected { border-color: rgba(255,170,34,0.4); background: rgba(255,170,34,0.08); color: var(--amber); }
+.status-opt[data-status="watching"].selected { border-color: rgba(74,168,255,0.3); background: rgba(74,168,255,0.06); color: var(--blue); }
+
+.avatar-preview {
+  width: 64px;
+  height: 64px;
+  border: 1px dashed var(--border-bright);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  opacity: 0.4;
+  font-size: 24px;
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-row { display: flex; gap: 12px; align-items: flex-end; }
+.avatar-inputs { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+
+#file-input { display: none; }
+.btn-file { font-size: 11px; padding: 5px 10px; cursor: pointer; }
+
+.modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── TOAST ──────────────────────────────────────────── */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  background: var(--bg3);
+  border: 1px solid var(--border-bright);
+  border-radius: 2px;
+  padding: 10px 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-bright);
+  animation: toast-in 0.2s ease-out;
+  max-width: 300px;
+}
+.toast.success { border-color: var(--accent-dim); color: var(--accent); }
+.toast.warn { border-color: var(--amber-dim); color: var(--amber); }
+.toast.error { border-color: var(--danger-dim); color: var(--danger); }
+@keyframes toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+
+/* ── SCROLLBAR ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg0); }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text); }
+
+/* ── CHECKING SPINNER ───────────────────────────────── */
+.checking-ring {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--border-bright);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── NOTIF BANNER ───────────────────────────────────── */
+#notif-banner {
+  background: rgba(0,229,160,0.07);
+  border: 1px solid var(--accent-dim);
+  border-radius: 2px;
+  margin: 12px 24px 0;
+  padding: 10px 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+  display: none;
+  align-items: center;
+  gap: 10px;
+}
+#notif-banner.show { display: flex; }
+
+/* ── IMPORT/EXPORT ──────────────────────────────────── */
+#io-modal .modal-body { gap: 12px; }
+#io-textarea {
+  width: 100%;
+  height: 180px;
+  background: var(--bg3);
+  border: 1px solid var(--border-bright);
+  color: var(--text-mid);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 10px;
+  resize: vertical;
+  outline: none;
+  border-radius: 2px;
+}
+
+/* ── HISTORY MODAL ──────────────────────────────────── */
+.history-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.history-row:last-child { border-bottom: none; }
+.hr-time { color: var(--text); opacity: 0.45; min-width: 130px; font-size: 10px; }
+.hr-rank { color: var(--text-mid); min-width: 60px; }
+.hr-fame { color: var(--text-bright); flex: 1; }
+.hr-delta { font-size: 10px; }
+.hr-delta.up { color: var(--accent); }
+.hr-delta.down { color: var(--danger); }
+
+/* mobile */
+@media (max-width: 600px) {
+  #header { padding: 0 12px; gap: 10px; }
+  #header-stats { display: none; }
+  #grid-container { padding: 12px; gap: 12px; grid-template-columns: 1fr; }
+  #poll-bar, #filter-bar { padding: 8px 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ───────────────────────────────────────── -->
+<div id="header">
+  <div id="logo">▣ THE FINALS <span>//</span> WATCHLIST</div>
+  <div id="header-stats">
+    <div class="hs-item">
+      <div class="hs-label">PLAYERS</div>
+      <div class="hs-val" id="stat-total">0</div>
+    </div>
+    <div class="hs-item">
+      <div class="hs-label">CONFIRMED</div>
+      <div class="hs-val danger" id="stat-confirmed">0</div>
+    </div>
+    <div class="hs-item">
+      <div class="hs-label">SUSPICIOUS</div>
+      <div class="hs-val amber" id="stat-suspicious">0</div>
+    </div>
+    <div class="hs-item">
+      <div class="hs-label">ACTIVE TODAY</div>
+      <div class="hs-val green" id="stat-active">0</div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <div id="header-controls">
+    <button class="btn" onclick="openIOModal('export')">
+      <svg viewBox="0 0 16 16"><path d="M2 13h12v1.5H2zm6-1.5L4.5 8H7V2h2v6h2.5z"/></svg>
+      내보내기
+    </button>
+    <button class="btn" onclick="openIOModal('import')">
+      <svg viewBox="0 0 16 16"><path d="M2 13h12v1.5H2zm5.5-2V3h1v8h2.5L8 15l-3-4z"/></svg>
+      불러오기
+    </button>
+    <button class="btn primary" onclick="openAddModal()">
+      <svg viewBox="0 0 16 16"><path d="M8.5 2v5.5H14v1H8.5V14h-1V8.5H2v-1h5.5V2z"/></svg>
+      플레이어 추가
+    </button>
+  </div>
+</div>
+
+<!-- ── POLL BAR ──────────────────────────────────────── -->
+<div id="poll-bar">
+  <label>SEASON</label>
+  <select id="season-select" onchange="saveSettings()">
+    <option value="s10">S10 (현재)</option>
+    <option value="s9">S9</option>
+    <option value="s8">S8</option>
+    <option value="s7">S7</option>
+    <option value="s6">S6</option>
+    <option value="s5">S5</option>
+    <option value="s4">S4</option>
+    <option value="the-finals">THE FINALS</option>
+  </select>
+  <label>PLATFORM</label>
+  <select id="platform-select" onchange="saveSettings()">
+    <option value="crossplay">크로스플레이</option>
+    <option value="steam">Steam</option>
+    <option value="xbox">Xbox</option>
+    <option value="psn">PlayStation</option>
+  </select>
+  <label>자동 조회</label>
+  <select id="interval-select" onchange="resetPoll()">
+    <option value="0">끄기</option>
+    <option value="1">1분</option>
+    <option value="2">2분</option>
+    <option value="3" selected>3분</option>
+    <option value="5">5분</option>
+    <option value="10">10분</option>
+  </select>
+  <div id="poll-countdown" class="paused">— 수동 —</div>
+  <div id="last-poll-time">마지막 조회: 없음</div>
+  <div class="spacer"></div>
+  <button class="toggle-btn" id="notif-toggle" onclick="toggleNotifications()">
+    <span class="toggle-dot"></span> 알림
+  </button>
+  <button class="btn primary" onclick="refreshAll()" id="refresh-btn">
+    <svg viewBox="0 0 16 16"><path d="M13.7 2.3A7.5 7.5 0 1 0 15 8h-1.5a6 6 0 1 1-1.1-3.5L10 6.5h4.5V2z"/></svg>
+    전체 조회
+  </button>
+</div>
+
+<!-- ── NOTIFICATION BANNER ──────────────────────────── -->
+<div id="notif-banner">
+  <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.75 3.5v4.25l-3 1.75-.75-1.3 2.25-1.3V4.5h1.5z"/></svg>
+  <span id="notif-text"></span>
+</div>
+
+<!-- ── GITHUB BAR ────────────────────────────────────── -->
+<div id="github-bar" style="background:var(--bg1);border-bottom:1px solid var(--border);padding:8px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+  <span style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:1px;">⬡ GITHUB</span>
+  <input id="gh-owner" class="form-input" style="width:130px;padding:4px 8px;font-size:11px;" placeholder="유저명 (yunsumin23)">
+  <span style="color:var(--text);opacity:0.4;font-family:var(--mono);">/</span>
+  <input id="gh-repo" class="form-input" style="width:130px;padding:4px 8px;font-size:11px;" placeholder="레포명 (tf-watchlist)">
+  <input id="gh-pat" class="form-input" style="width:200px;padding:4px 8px;font-size:11px;" type="password" placeholder="PAT (선택, 플레이어 추가/삭제용)">
+  <button class="btn primary" onclick="githubPull()" id="gh-pull-btn" style="font-size:11px;padding:4px 10px;">
+    ↓ 히스토리 가져오기
+  </button>
+  <button class="btn amber" onclick="githubLoadPlayers()" id="gh-load-btn" style="font-size:11px;padding:4px 10px;" title="players.json에서 플레이어 목록 불러오기">
+    ↓ players.json 불러오기
+  </button>
+  <button class="btn" onclick="githubPushPlayers()" id="gh-push-btn" style="font-size:11px;padding:4px 10px;" title="players.json 동기화 (PAT 필요)">
+    ↑ 목록 동기화
+  </button>
+  <div id="gh-status" style="font-family:var(--mono);font-size:10px;color:var(--text);opacity:0.5;"></div>
+</div>
+
+<!-- ── FILTER BAR ────────────────────────────────────── -->
+<div id="filter-bar">
+  <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">전체</button>
+  <button class="filter-btn" data-filter="confirmed" onclick="setFilter('confirmed',this)">확정</button>
+  <button class="filter-btn" data-filter="suspicious" onclick="setFilter('suspicious',this)">의심</button>
+  <button class="filter-btn" data-filter="watching" onclick="setFilter('watching',this)">감시중</button>
+  <button class="filter-btn" data-filter="active-today" onclick="setFilter('active-today',this)">오늘 활동</button>
+  <div class="filter-sep"></div>
+  <input type="text" id="search-input" placeholder="닉네임 검색..." oninput="renderGrid()">
+  <select id="sort-select" onchange="renderGrid()">
+    <option value="lastActive">마지막 활동순</option>
+    <option value="rank">랭킹순</option>
+    <option value="fame">Fame 순</option>
+    <option value="status">상태순</option>
+    <option value="added">추가순</option>
+  </select>
+</div>
+
+<!-- ── GRID ─────────────────────────────────────────── -->
+<div id="grid-container">
+  <div id="empty-state">감시 목록이 비어있습니다<br><br>+ 플레이어 추가로 시작하세요</div>
+</div>
+
+<!-- ── ADD/EDIT MODAL ────────────────────────────────── -->
+<div id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="main-modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">플레이어 추가</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <div class="form-label">플레이어 태그 *</div>
+        <input class="form-input" id="input-tag" placeholder="PlayerName#1234" autocomplete="off">
+        <div class="form-hint">리더보드에 등재된 정확한 태그를 입력하세요</div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">커스텀 메모 이름</div>
+        <input class="form-input" id="input-alias" placeholder="예: 어시아 1위 핵쟁이" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <div class="form-label">상태</div>
+        <div class="status-select">
+          <div class="status-opt" data-status="confirmed" onclick="selectStatus('confirmed')">확정 핵</div>
+          <div class="status-opt selected" data-status="suspicious" onclick="selectStatus('suspicious')">의심</div>
+          <div class="status-opt" data-status="watching" onclick="selectStatus('watching')">감시중</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">프로필 이미지</div>
+        <div class="avatar-row">
+          <div class="avatar-preview" id="avatar-preview" onclick="document.getElementById('file-input').click()">📷</div>
+          <div class="avatar-inputs">
+            <input class="form-input" id="input-img-url" placeholder="이미지 URL" oninput="updateAvatarPreview()">
+            <input type="file" id="file-input" accept="image/*" onchange="handleFileUpload(event)">
+            <button class="btn btn-file" onclick="document.getElementById('file-input').click()">
+              <svg viewBox="0 0 16 16"><path d="M2 13h12v1.5H2zm6-1.5L4.5 8H7V2h2v6h2.5z"/></svg>파일 업로드
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">메모</div>
+        <textarea class="form-input" id="input-notes" rows="2" placeholder="기록할 내용..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">취소</button>
+      <button class="btn danger" id="btn-delete" style="display:none" onclick="deletePlayer()">삭제</button>
+      <button class="btn primary" onclick="savePlayer()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── I/O MODAL ─────────────────────────────────────── -->
+<div id="io-modal-overlay" onclick="if(event.target===this)document.getElementById('io-modal-overlay').classList.remove('open')" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;align-items:center;justify-content:center;">
+  <div class="modal" id="io-modal" style="width:480px;">
+    <div class="modal-header">
+      <div class="modal-title" id="io-modal-title">내보내기</div>
+      <button class="modal-close" onclick="document.getElementById('io-modal-overlay').classList.remove('open');document.getElementById('io-modal-overlay').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body" id="io-modal">
+      <div class="form-hint" id="io-hint"></div>
+      <textarea id="io-textarea" readonly></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('io-modal-overlay').style.display='none'">닫기</button>
+      <button class="btn primary" id="io-action-btn">복사</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── HISTORY MODAL ─────────────────────────────────── -->
+<div id="history-overlay" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;align-items:center;justify-content:center;">
+  <div class="modal" style="width:500px;max-height:70vh;">
+    <div class="modal-header">
+      <div class="modal-title" id="history-title">Fame 기록</div>
+      <button class="modal-close" onclick="document.getElementById('history-overlay').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body" id="history-body" style="gap:0;padding:12px 16px;max-height:55vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- ── TOAST ─────────────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════
+let watchlist = {}; // tag -> player object
+let settings = { season:'s10', platform:'crossplay', pollInterval:3, notifications:false };
+let currentFilter = 'all';
+let pollTimer = null;
+let pollCountdownTimer = null;
+let pollSecondsLeft = 0;
+let editingTag = null;
+let pendingAvatarBase64 = null;
+let isRefreshing = false;
+
+// ══════════════════════════════════════════════════════
+//  STORAGE
+// ══════════════════════════════════════════════════════
+function loadData() {
+  try {
+    const raw = localStorage.getItem('tf_watchlist_v2');
+    if (raw) watchlist = JSON.parse(raw);
+    const rawS = localStorage.getItem('tf_settings');
+    if (rawS) settings = { ...settings, ...JSON.parse(rawS) };
+  } catch(e) { watchlist = {}; }
+}
+
+function saveData() {
+  localStorage.setItem('tf_watchlist_v2', JSON.stringify(watchlist));
+}
+
+function saveSettings() {
+  settings.season = document.getElementById('season-select').value;
+  settings.platform = document.getElementById('platform-select').value;
+  localStorage.setItem('tf_settings', JSON.stringify(settings));
+}
+
+// ══════════════════════════════════════════════════════
+//  API
+// ══════════════════════════════════════════════════════
+async function fetchPlayerData(tag) {
+  const { season, platform } = settings;
+  const url = `https://api.the-finals-leaderboard.com/v1/leaderboard/${season}/${platform}?name=${encodeURIComponent(tag)}`;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    const entries = json.data ?? json;
+    if (!Array.isArray(entries)) return null;
+    // exact match first, then partial
+    const exact = entries.find(e => e.name.toLowerCase() === tag.toLowerCase());
+    if (exact) return exact;
+    // try partial match (without hash)
+    const base = tag.split('#')[0].toLowerCase();
+    return entries.find(e => e.name.toLowerCase().startsWith(base)) ?? null;
+  } catch(e) {
+    console.warn('API fail for', tag, e.message);
+    return null;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  REFRESH
+// ══════════════════════════════════════════════════════
+async function refreshAll() {
+  if (isRefreshing) return;
+  isRefreshing = true;
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="checking-ring"></span> 조회중...';
+
+  const tags = Object.keys(watchlist);
+  const activatedPlayers = [];
+
+  for (const tag of tags) {
+    const p = watchlist[tag];
+    p.checking = true;
+    updateCard(tag);
+
+    const data = await fetchPlayerData(tag);
+    p.checking = false;
+    p.lastChecked = Date.now();
+
+    if (data) {
+      p.notFound = false;
+      const prevFame = p.currentFame ?? null;
+      const prevRank = p.currentRank ?? null;
+      const newFame = data.fame ?? data.rankScore ?? 0;
+      const newRank = data.rank ?? null;
+      const newCashouts = data.cashouts ?? data.totalCashouts ?? null;
+
+      // Detect activity
+      if (prevFame !== null && newFame !== prevFame) {
+        p.lastActive = Date.now();
+        activatedPlayers.push(tag);
+      }
+
+      // Detect name change
+      if (data.name && data.name.toLowerCase() !== tag.toLowerCase()) {
+        const already = (p.nicknameHistory || []).some(h => h.name.toLowerCase() === data.name.toLowerCase());
+        if (!already) {
+          if (!p.nicknameHistory) p.nicknameHistory = [];
+          p.nicknameHistory.unshift({ name: data.name, detectedAt: Date.now() });
+        }
+      }
+
+      p.currentFame = newFame;
+      p.currentRank = newRank;
+      p.currentCashouts = newCashouts;
+
+      // Store history (keep last 30 snapshots)
+      if (!p.fameHistory) p.fameHistory = [];
+      const lastSnap = p.fameHistory[p.fameHistory.length - 1];
+      if (!lastSnap || lastSnap.fame !== newFame) {
+        p.fameHistory.push({ fame: newFame, rank: newRank, cashouts: newCashouts, t: Date.now() });
+        if (p.fameHistory.length > 30) p.fameHistory.shift();
+      }
+
+      // Rank history
+      if (!p.rankHistory) p.rankHistory = {};
+      p.rankHistory[Date.now()] = newRank;
+    } else {
+      p.notFound = true;
+    }
+
+    updateCard(tag);
+  }
+
+  saveData();
+  updateHeaderStats();
+
+  // Notifications
+  if (activatedPlayers.length > 0 && settings.notifications) {
+    const msg = activatedPlayers.length === 1
+      ? `${activatedPlayers[0]} 활동 감지됨!`
+      : `${activatedPlayers.length}명 활동 감지: ${activatedPlayers.slice(0,3).join(', ')}`;
+    sendNotification(msg);
+    showBanner(msg);
+  }
+
+  document.getElementById('last-poll-time').textContent = '마지막 조회: ' + new Date().toLocaleTimeString('ko-KR');
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 16 16" style="width:13px;height:13px;fill:currentColor"><path d="M13.7 2.3A7.5 7.5 0 1 0 15 8h-1.5a6 6 0 1 1-1.1-3.5L10 6.5h4.5V2z"/></svg> 전체 조회';
+  isRefreshing = false;
+
+  // Re-sort grid
+  renderGrid();
+
+  // Animate active cards
+  activatedPlayers.forEach(tag => {
+    const el = document.querySelector(`.card[data-tag="${CSS.escape(tag)}"]`);
+    if (el) { el.classList.add('just-active'); setTimeout(() => el.classList.remove('just-active'), 1000); }
+  });
+}
+
+async function refreshSingle(tag) {
+  const p = watchlist[tag];
+  if (!p) return;
+  p.checking = true;
+  updateCard(tag);
+  const data = await fetchPlayerData(tag);
+  p.checking = false;
+  p.lastChecked = Date.now();
+
+  if (data) {
+    p.notFound = false;
+    const prevFame = p.currentFame ?? null;
+    const newFame = data.fame ?? data.rankScore ?? 0;
+    const newRank = data.rank ?? null;
+    const newCashouts = data.cashouts ?? data.totalCashouts ?? null;
+
+    if (prevFame !== null && newFame !== prevFame) {
+      p.lastActive = Date.now();
+      if (settings.notifications) sendNotification(`${tag} 활동 감지됨!`);
+    }
+
+    if (data.name && data.name.toLowerCase() !== tag.toLowerCase()) {
+      const already = (p.nicknameHistory || []).some(h => h.name.toLowerCase() === data.name.toLowerCase());
+      if (!already) {
+        if (!p.nicknameHistory) p.nicknameHistory = [];
+        p.nicknameHistory.unshift({ name: data.name, detectedAt: Date.now() });
+      }
+    }
+
+    p.currentFame = newFame;
+    p.currentRank = newRank;
+    p.currentCashouts = newCashouts;
+
+    if (!p.fameHistory) p.fameHistory = [];
+    const lastSnap = p.fameHistory[p.fameHistory.length - 1];
+    if (!lastSnap || lastSnap.fame !== newFame) {
+      p.fameHistory.push({ fame: newFame, rank: newRank, cashouts: newCashouts, t: Date.now() });
+      if (p.fameHistory.length > 30) p.fameHistory.shift();
+    }
+  } else {
+    p.notFound = true;
+  }
+
+  saveData();
+  updateCard(tag);
+  updateHeaderStats();
+}
+
+// ══════════════════════════════════════════════════════
+//  POLL TIMER
+// ══════════════════════════════════════════════════════
+function resetPoll() {
+  clearInterval(pollTimer);
+  clearInterval(pollCountdownTimer);
+  const mins = parseInt(document.getElementById('interval-select').value);
+  settings.pollInterval = mins;
+  saveSettings();
+
+  const cd = document.getElementById('poll-countdown');
+  if (mins === 0) {
+    cd.className = 'paused';
+    cd.textContent = '— 수동 —';
+    return;
+  }
+
+  pollSecondsLeft = mins * 60;
+  cd.className = '';
+
+  function tick() {
+    pollSecondsLeft--;
+    const m = Math.floor(pollSecondsLeft / 60);
+    const s = String(pollSecondsLeft % 60).padStart(2,'0');
+    cd.textContent = `${m}:${s}`;
+    if (pollSecondsLeft <= 0) {
+      pollSecondsLeft = mins * 60;
+      refreshAll();
+    }
+  }
+  tick();
+  pollCountdownTimer = setInterval(tick, 1000);
+}
+
+// ══════════════════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════════════════
+function toggleNotifications() {
+  if (!settings.notifications) {
+    if (!('Notification' in window)) { toast('이 브라우저는 알림을 지원하지 않습니다', 'warn'); return; }
+    Notification.requestPermission().then(p => {
+      settings.notifications = (p === 'granted');
+      updateNotifToggle();
+      saveSettings();
+      if (!settings.notifications) toast('알림 권한이 거부되었습니다', 'warn');
+      else toast('알림이 활성화되었습니다', 'success');
+    });
+  } else {
+    settings.notifications = false;
+    updateNotifToggle();
+    saveSettings();
+    toast('알림이 비활성화되었습니다');
+  }
+}
+
+function updateNotifToggle() {
+  const btn = document.getElementById('notif-toggle');
+  btn.className = 'toggle-btn' + (settings.notifications ? ' on' : '');
+  btn.innerHTML = `<span class="toggle-dot"></span> ${settings.notifications ? '알림 ON' : '알림'}`;
+}
+
+function sendNotification(msg) {
+  if (settings.notifications && Notification.permission === 'granted') {
+    new Notification('THE FINALS WATCHLIST', { body: msg, icon: '' });
+  }
+}
+
+function showBanner(msg) {
+  const banner = document.getElementById('notif-banner');
+  document.getElementById('notif-text').textContent = msg;
+  banner.classList.add('show');
+  setTimeout(() => banner.classList.remove('show'), 5000);
+}
+
+// ══════════════════════════════════════════════════════
+//  MODAL
+// ══════════════════════════════════════════════════════
+function openAddModal() {
+  editingTag = null;
+  pendingAvatarBase64 = null;
+  document.getElementById('modal-title').textContent = '플레이어 추가';
+  document.getElementById('input-tag').value = '';
+  document.getElementById('input-tag').disabled = false;
+  document.getElementById('input-alias').value = '';
+  document.getElementById('input-notes').value = '';
+  document.getElementById('input-img-url').value = '';
+  document.getElementById('avatar-preview').innerHTML = '📷';
+  document.getElementById('btn-delete').style.display = 'none';
+  selectStatus('suspicious');
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('input-tag').focus(), 100);
+}
+
+function openEditModal(tag) {
+  editingTag = tag;
+  pendingAvatarBase64 = null;
+  const p = watchlist[tag];
+  document.getElementById('modal-title').textContent = '플레이어 수정';
+  document.getElementById('input-tag').value = tag;
+  document.getElementById('input-tag').disabled = false;
+  document.getElementById('input-alias').value = p.alias || '';
+  document.getElementById('input-notes').value = p.notes || '';
+  document.getElementById('input-img-url').value = (p.imageUrl && !p.imageUrl.startsWith('data:')) ? p.imageUrl : '';
+  updateAvatarPreviewWith(p.imageUrl || '');
+  document.getElementById('btn-delete').style.display = '';
+  selectStatus(p.status || 'watching');
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  editingTag = null;
+  pendingAvatarBase64 = null;
+}
+
+function selectStatus(s) {
+  document.querySelectorAll('.status-opt').forEach(el => {
+    el.classList.toggle('selected', el.dataset.status === s);
+  });
+}
+
+function getSelectedStatus() {
+  return document.querySelector('.status-opt.selected')?.dataset.status || 'watching';
+}
+
+function updateAvatarPreview() {
+  const url = document.getElementById('input-img-url').value.trim();
+  pendingAvatarBase64 = null;
+  updateAvatarPreviewWith(url);
+}
+
+function updateAvatarPreviewWith(src) {
+  const preview = document.getElementById('avatar-preview');
+  if (src) {
+    preview.innerHTML = `<img src="${src}" onerror="this.parentElement.innerHTML='📷'">`;
+  } else {
+    preview.innerHTML = '📷';
+  }
+}
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingAvatarBase64 = e.target.result;
+    updateAvatarPreviewWith(pendingAvatarBase64);
+    document.getElementById('input-img-url').value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function savePlayer() {
+  const tag = document.getElementById('input-tag').value.trim();
+  if (!tag) { toast('플레이어 태그를 입력하세요', 'warn'); return; }
+
+  const imageUrl = pendingAvatarBase64 || document.getElementById('input-img-url').value.trim() || null;
+
+  if (editingTag) {
+    const newTag = tag;
+    const p = { ...watchlist[editingTag] };
+    p.tag = newTag;
+    p.alias = document.getElementById('input-alias').value.trim();
+    p.status = getSelectedStatus();
+    p.notes = document.getElementById('input-notes').value.trim();
+    if (imageUrl !== null) p.imageUrl = imageUrl;
+    // If tag changed, migrate to new key
+    if (newTag !== editingTag) {
+      if (watchlist[newTag]) { toast('이미 존재하는 태그입니다', 'warn'); return; }
+      delete watchlist[editingTag];
+      // Record old tag in nickname history
+      if (!p.nicknameHistory) p.nicknameHistory = [];
+      const already = p.nicknameHistory.some(h => h.name.toLowerCase() === editingTag.toLowerCase());
+      if (!already) p.nicknameHistory.unshift({ name: editingTag, detectedAt: Date.now() });
+    }
+    watchlist[newTag] = p;
+    closeModal();
+    saveData();
+    renderGrid();
+    updateHeaderStats();
+    toast(newTag !== editingTag ? `태그 변경됨 → ${newTag}` : '수정됨', 'success');
+  } else {
+    if (watchlist[tag]) { toast('이미 추가된 플레이어입니다', 'warn'); return; }
+    watchlist[tag] = {
+      tag,
+      alias: document.getElementById('input-alias').value.trim(),
+      status: getSelectedStatus(),
+      notes: document.getElementById('input-notes').value.trim(),
+      imageUrl,
+      addedAt: Date.now(),
+      lastChecked: null,
+      lastActive: null,
+      currentFame: null,
+      currentRank: null,
+      currentCashouts: null,
+      fameHistory: [],
+      nicknameHistory: [],
+      notFound: false,
+      checking: false,
+    };
+    closeModal();
+    saveData();
+    renderGrid();
+    updateHeaderStats();
+    toast(`${tag} 추가됨`, 'success');
+    // Auto-fetch
+    refreshSingle(tag);
+  }
+}
+
+function deletePlayer() {
+  if (!editingTag) return;
+  if (!confirm(`"${editingTag}" 을(를) 목록에서 삭제하시겠습니까?`)) return;
+  delete watchlist[editingTag];
+  closeModal();
+  saveData();
+  renderGrid();
+  updateHeaderStats();
+  toast('삭제됨');
+}
+
+// ══════════════════════════════════════════════════════
+//  GRID RENDER
+// ══════════════════════════════════════════════════════
+function getFilteredSorted() {
+  const query = document.getElementById('search-input').value.toLowerCase().trim();
+  const sortBy = document.getElementById('sort-select').value;
+  const today = Date.now() - 24 * 60 * 60 * 1000;
+
+  let entries = Object.values(watchlist);
+
+  // Filter
+  if (currentFilter !== 'all') {
+    if (currentFilter === 'active-today') {
+      entries = entries.filter(p => p.lastActive && p.lastActive > today);
+    } else {
+      entries = entries.filter(p => p.status === currentFilter);
+    }
+  }
+
+  // Search
+  if (query) {
+    entries = entries.filter(p =>
+      p.tag.toLowerCase().includes(query) ||
+      (p.alias || '').toLowerCase().includes(query) ||
+      (p.notes || '').toLowerCase().includes(query)
+    );
+  }
+
+  // Sort
+  const statusOrder = { confirmed: 0, suspicious: 1, watching: 2 };
+  entries.sort((a, b) => {
+    switch(sortBy) {
+      case 'lastActive': return (b.lastActive || 0) - (a.lastActive || 0);
+      case 'rank': return (a.currentRank || 99999) - (b.currentRank || 99999);
+      case 'fame': return (b.currentFame || 0) - (a.currentFame || 0);
+      case 'status': return (statusOrder[a.status]||2) - (statusOrder[b.status]||2);
+      case 'added': return (b.addedAt || 0) - (a.addedAt || 0);
+    }
+    return 0;
+  });
+
+  return entries;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid-container');
+  const entries = getFilteredSorted();
+
+  if (entries.length === 0) {
+    grid.innerHTML = '<div id="empty-state">결과 없음</div>';
+    return;
+  }
+
+  // Remove cards not in filtered set, add new ones
+  const existingTags = new Set([...grid.querySelectorAll('.card')].map(c => c.dataset.tag));
+  const newTags = new Set(entries.map(p => p.tag));
+
+  // Remove stale
+  existingTags.forEach(tag => {
+    if (!newTags.has(tag)) grid.querySelector(`.card[data-tag="${CSS.escape(tag)}"]`)?.remove();
+  });
+
+  // Remove empty state
+  grid.querySelector('#empty-state')?.remove();
+
+  // Insert/update in sorted order
+  entries.forEach((p, i) => {
+    let card = grid.querySelector(`.card[data-tag="${CSS.escape(p.tag)}"]`);
+    if (!card) {
+      card = createCard(p);
+      grid.appendChild(card);
+    } else {
+      refreshCardContent(card, p);
+    }
+    // Maintain order
+    if (grid.children[i] !== card) grid.insertBefore(card, grid.children[i] || null);
+  });
+}
+
+function updateCard(tag) {
+  const card = document.querySelector(`.card[data-tag="${CSS.escape(tag)}"]`);
+  if (card && watchlist[tag]) refreshCardContent(card, watchlist[tag]);
+}
+
+function createCard(p) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.tag = p.tag;
+  refreshCardContent(card, p);
+  return card;
+}
+
+function refreshCardContent(card, p) {
+  const statusClass = p.status ? `status-${p.status}` : '';
+  card.className = `card ${statusClass}`;
+  card.dataset.tag = p.tag;
+
+  const statusLabels = { confirmed: '확정 핵', suspicious: '의심', watching: '감시중' };
+  const statusLabel = statusLabels[p.status] || '감시중';
+
+  const tagParts = p.tag.includes('#') ? p.tag.split('#') : [p.tag, ''];
+  const tagDisplay = tagParts[1]
+    ? `${tagParts[0]}<span class="tag-hash">#${tagParts[1]}</span>`
+    : p.tag;
+
+  const avatarContent = p.imageUrl
+    ? `<img src="${p.imageUrl}" onerror="this.parentElement.innerHTML='${initials(p.tag)}';">`
+    : initials(p.tag);
+
+  // Stats
+  const rank = p.currentRank != null ? `#${p.currentRank.toLocaleString()}` : '—';
+  const fame = p.currentFame != null ? (p.currentFame >= 1000 ? (p.currentFame/1000).toFixed(1)+'K' : p.currentFame.toString()) : '—';
+  const cashouts = p.currentCashouts != null ? '$' + (p.currentCashouts >= 1e6 ? (p.currentCashouts/1e6).toFixed(1)+'M' : p.currentCashouts.toLocaleString()) : '—';
+
+  // Deltas
+  const fameDelta = getFameDelta(p);
+  const rankDelta = getRankDelta(p);
+
+  // Activity
+  const activityHtml = getActivityHtml(p);
+
+  // Sparkline
+  const sparkHtml = buildSparkline(p.fameHistory || []);
+
+  // Nickname history
+  const nickHtml = (p.nicknameHistory || []).length > 0 ? buildNickHistory(p) : '';
+
+  // Not found notice
+  const notFoundHtml = p.notFound
+    ? `<div style="padding:4px 12px;font-family:var(--mono);font-size:10px;color:var(--danger);opacity:0.7;border-bottom:1px solid var(--border);">⚠ 리더보드 미등재 (탑10000 밖 또는 밴)</div>`
+    : '';
+
+  const checkingHtml = p.checking
+    ? `<span class="checking-ring"></span>`
+    : '';
+
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-avatar" onclick="openEditModal('${esc(p.tag)}')" title="클릭하여 수정">${avatarContent}</div>
+      <div class="card-info">
+        <div class="card-tag">${tagDisplay} ${checkingHtml}</div>
+        <div class="card-alias">${esc(p.alias || '')}</div>
+        <div class="status-badge">${statusLabel}</div>
+      </div>
+      <div class="card-actions-top">
+        <button class="btn" style="font-size:10px;padding:3px 7px;" onclick="refreshSingle('${esc(p.tag)}')" title="개별 조회">↻</button>
+        <button class="btn" style="font-size:10px;padding:3px 7px;" onclick="openEditModal('${esc(p.tag)}')" title="수정">✎</button>
+      </div>
+    </div>
+    <div class="card-stats">
+      <div class="stat-cell">
+        <div class="stat-label">RANK</div>
+        <div class="stat-val ${rank==='—'?'not-found':''}">${rank}</div>
+        <div class="stat-delta ${rankDelta.cls}">${rankDelta.text}</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">FAME</div>
+        <div class="stat-val ${fame==='—'?'not-found':''}">${fame}</div>
+        <div class="stat-delta ${fameDelta.cls}">${fameDelta.text}</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-label">CASHOUTS</div>
+        <div class="stat-val ${cashouts==='—'?'not-found':''}" style="font-size:13px;">${cashouts}</div>
+        <div class="stat-delta neutral">&nbsp;</div>
+      </div>
+    </div>
+    ${activityHtml}
+    ${sparkHtml ? `<div class="card-sparkline"><div class="spark-label">FAME<br>HISTORY</div>${sparkHtml}</div>` : ''}
+    ${notFoundHtml}
+    ${nickHtml}
+    <div class="card-notes">
+      <textarea placeholder="메모 입력..." onchange="saveNote('${esc(p.tag)}', this.value)">${esc(p.notes || '')}</textarea>
+    </div>
+    <div class="card-footer">
+      ${(p.fameHistory||[]).length > 1 ? `<button class="btn" style="font-size:10px;padding:3px 8px;" onclick="openHistoryModal('${esc(p.tag)}')">기록 보기 (${p.fameHistory.length})</button>` : ''}
+      <a class="btn" style="font-size:10px;padding:3px 8px;text-decoration:none;" href="https://www.davg25.com/app/the-finals-leaderboard-tracker/player-stats/?id=${encodeURIComponent(p.tag)}&season=${settings.season}" target="_blank">↗ davg25</a>
+      <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+        ${(p.fameHistory||[]).length > 0 ? `<div style="font-family:var(--mono);font-size:9px;color:var(--text);opacity:0.45;">점수갱신 ${timeAgo(p.fameHistory[p.fameHistory.length-1].t)}</div>` : ''}
+        <div class="card-added">추가: ${new Date(p.addedAt||Date.now()).toLocaleDateString('ko-KR')}</div>
+      </div>
+    </div>
+  `;
+}
+
+function timeAgo(ts) {
+  if (!ts) return '—';
+  const elapsed = Date.now() - ts;
+  const mins = Math.floor(elapsed / 60000);
+  const hrs = Math.floor(mins / 60);
+  const days = Math.floor(hrs / 24);
+  if (mins < 1) return '방금 전';
+  if (mins < 60) return `${mins}분 전`;
+  if (hrs < 24) return `${hrs}시간 ${mins%60}분 전`;
+  return `${days}일 전`;
+}
+
+function initials(tag) {
+  const name = tag.split('#')[0];
+  return name.slice(0,2).toUpperCase();
+}
+
+function esc(str) {
+  return String(str||'').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function getFameDelta(p) {
+  const h = p.fameHistory || [];
+  if (h.length < 2) return { cls: 'neutral', text: '&nbsp;' };
+  const diff = h[h.length-1].fame - h[h.length-2].fame;
+  if (diff === 0) return { cls: 'neutral', text: '±0' };
+  const sign = diff > 0 ? '+' : '';
+  return { cls: diff > 0 ? 'up' : 'down', text: sign + (Math.abs(diff) >= 1000 ? (diff/1000).toFixed(1)+'K' : diff) };
+}
+
+function getRankDelta(p) {
+  const h = p.fameHistory || [];
+  if (h.length < 2) return { cls: 'neutral', text: '&nbsp;' };
+  const prev = h[h.length-2].rank;
+  const curr = h[h.length-1].rank;
+  if (!prev || !curr) return { cls: 'neutral', text: '&nbsp;' };
+  const diff = curr - prev; // lower rank = better
+  if (diff === 0) return { cls: 'neutral', text: '±0' };
+  // rank going down (number increase) = bad
+  const sign = diff > 0 ? '+' : '';
+  return { cls: diff < 0 ? 'up' : 'down', text: sign + diff };
+}
+
+function getActivityHtml(p) {
+  const now = Date.now();
+  let dotClass = '', textHtml = '';
+
+  if (p.checking) {
+    dotClass = 'checking';
+    textHtml = '<span style="color:var(--blue);">조회중...</span>';
+  } else if (!p.lastChecked) {
+    textHtml = '<span class="never">아직 조회하지 않음</span>';
+  } else if (!p.lastActive) {
+    textHtml = '<span class="never">활동 미감지</span>';
+  } else {
+    const elapsed = now - p.lastActive;
+    const mins = Math.floor(elapsed / 60000);
+    const hrs = Math.floor(mins / 60);
+    const days = Math.floor(hrs / 24);
+
+    let timeStr;
+    if (mins < 1) timeStr = '방금 전';
+    else if (mins < 60) timeStr = `${mins}분 전`;
+    else if (hrs < 24) timeStr = `${hrs}시간 ${mins%60}분 전`;
+    else timeStr = `${days}일 전`;
+
+    if (elapsed < 30 * 60 * 1000) {
+      dotClass = 'recent';
+      textHtml = `<span class="active-time">▶ ${timeStr} 활동 감지</span>`;
+    } else if (elapsed < 24 * 60 * 60 * 1000) {
+      dotClass = 'today';
+      textHtml = `<span class="today-time">${timeStr} 활동 감지</span>`;
+    } else {
+      textHtml = `<span style="opacity:0.5;">${timeStr} 활동 감지</span>`;
+    }
+  }
+
+  const lastCheckedStr = p.lastChecked
+    ? new Date(p.lastChecked).toLocaleTimeString('ko-KR')
+    : '';
+
+  return `
+    <div class="card-activity">
+      <div class="activity-dot ${dotClass}"></div>
+      <div class="activity-text">${textHtml}</div>
+      ${lastCheckedStr ? `<div style="font-family:var(--mono);font-size:9px;color:var(--text);opacity:0.3;">${lastCheckedStr}</div>` : ''}
+    </div>
+  `;
+}
+
+function buildSparkline(history) {
+  if (history.length < 2) return '';
+  const vals = history.map(h => h.fame);
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const range = max - min || 1;
+  const W = 200, H = 28;
+  const pts = vals.map((v, i) => {
+    const x = (i / (vals.length-1)) * W;
+    const y = H - ((v - min) / range) * H;
+    return `${x},${y}`;
+  });
+  const color = vals[vals.length-1] >= vals[0] ? 'var(--accent)' : 'var(--danger)';
+  return `<svg class="spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="${pts[pts.length-1].split(',')[0]}" cy="${pts[pts.length-1].split(',')[1]}" r="2.5" fill="${color}"/>
+  </svg>`;
+}
+
+function buildNickHistory(p) {
+  const nicks = p.nicknameHistory || [];
+  if (!nicks.length) return '';
+  const rows = nicks.slice(0, 3).map(n =>
+    `<div class="nick-entry"><span class="nick-name">${esc(n.name)}</span><span class="nick-date">${new Date(n.detectedAt).toLocaleDateString('ko-KR')} 감지</span></div>`
+  ).join('');
+  return `<div class="card-nickhistory visible">
+    <div class="nickhistory-title">닉네임 히스토리</div>
+    ${rows}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  HISTORY MODAL
+// ══════════════════════════════════════════════════════
+function openHistoryModal(tag) {
+  const p = watchlist[tag];
+  if (!p) return;
+  document.getElementById('history-title').textContent = `${p.tag} — Fame 기록`;
+  const body = document.getElementById('history-body');
+  const history = [...(p.fameHistory || [])].reverse();
+  if (!history.length) { body.innerHTML = '<div style="opacity:0.4;font-family:var(--mono);font-size:12px;">기록 없음</div>'; }
+  else {
+    body.innerHTML = history.map((snap, i) => {
+      const prev = history[i+1];
+      const delta = (prev && snap.fame != null && prev.fame != null) ? snap.fame - prev.fame : 0;
+      const deltaHtml = delta !== 0
+        ? `<span class="hr-delta ${delta>0?'up':'down'}">${delta>0?'+':''}${Math.abs(delta) >= 1000 ? (delta/1000).toFixed(1)+'K' : delta}</span>`
+        : '';
+      return `<div class="history-row">
+        <span class="hr-time">${new Date(snap.t).toLocaleString('ko-KR')}</span>
+        <span class="hr-rank">${snap.rank ? '#'+snap.rank : '—'}</span>
+        <span class="hr-fame">${snap.fame != null ? snap.fame.toLocaleString() : '—'}</span>
+        ${deltaHtml}
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('history-overlay').style.display = 'flex';
+}
+
+// ══════════════════════════════════════════════════════
+//  I/O MODAL
+// ══════════════════════════════════════════════════════
+function openIOModal(mode) {
+  const overlay = document.getElementById('io-modal-overlay');
+  const textarea = document.getElementById('io-textarea');
+  const hint = document.getElementById('io-hint');
+  const actionBtn = document.getElementById('io-action-btn');
+  document.getElementById('io-modal-title').textContent = mode === 'export' ? '내보내기' : '불러오기';
+
+  if (mode === 'export') {
+    const data = JSON.stringify(watchlist, null, 2);
+    textarea.value = data;
+    textarea.readOnly = true;
+    hint.textContent = '아래 JSON을 복사하여 저장해두세요.';
+    actionBtn.textContent = '클립보드 복사';
+    actionBtn.onclick = () => {
+      navigator.clipboard.writeText(data).then(() => toast('복사됨', 'success'));
+    };
+  } else {
+    textarea.value = '';
+    textarea.readOnly = false;
+    hint.textContent = '이전에 내보낸 JSON을 붙여넣고 불러오기를 누르세요. 기존 데이터에 병합됩니다.';
+    actionBtn.textContent = '불러오기';
+    actionBtn.onclick = () => {
+      try {
+        const parsed = JSON.parse(textarea.value);
+        const count = Object.keys(parsed).length;
+        Object.assign(watchlist, parsed);
+        saveData();
+        renderGrid();
+        updateHeaderStats();
+        overlay.style.display = 'none';
+        toast(`${count}명 불러옴`, 'success');
+      } catch(e) {
+        toast('올바른 JSON 형식이 아닙니다', 'error');
+      }
+    };
+  }
+  overlay.style.display = 'flex';
+}
+
+// ══════════════════════════════════════════════════════
+//  MISC
+// ══════════════════════════════════════════════════════
+function saveNote(tag, value) {
+  if (watchlist[tag]) {
+    watchlist[tag].notes = value;
+    saveData();
+  }
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+function updateHeaderStats() {
+  const all = Object.values(watchlist);
+  const today = Date.now() - 24*60*60*1000;
+  document.getElementById('stat-total').textContent = all.length;
+  document.getElementById('stat-confirmed').textContent = all.filter(p=>p.status==='confirmed').length;
+  document.getElementById('stat-suspicious').textContent = all.filter(p=>p.status==='suspicious').length;
+  document.getElementById('stat-active').textContent = all.filter(p=>p.lastActive && p.lastActive > today).length;
+}
+
+function toast(msg, type='') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ══════════════════════════════════════════════════════
+//  GITHUB 연동
+// ══════════════════════════════════════════════════════
+function ghSettings() {
+  return {
+    owner: document.getElementById('gh-owner').value.trim(),
+    repo:  document.getElementById('gh-repo').value.trim(),
+    pat:   document.getElementById('gh-pat').value.trim(),
+  };
+}
+
+function ghStatus(msg, type='') {
+  const el = document.getElementById('gh-status');
+  el.textContent = msg;
+  el.style.color = type==='ok' ? 'var(--accent)' : type==='err' ? 'var(--danger)' : 'var(--text)';
+}
+
+// GitHub raw에서 history.json 가져와서 로컬 watchlist에 병합
+// 기존에 있는 플레이어만 업데이트, 새로 추가 안 함
+async function githubPull() {
+  const { owner, repo } = ghSettings();
+  if (!owner || !repo) { toast('GitHub 유저명과 레포명을 입력하세요', 'warn'); return; }
+
+  const btn = document.getElementById('gh-pull-btn');
+  btn.disabled = true;
+  btn.textContent = '가져오는 중...';
+  ghStatus('GitHub에서 데이터 로드 중...');
+
+  const url = `https://raw.githubusercontent.com/${owner}/${repo}/main/data/history.json?t=${Date.now()}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const history = await res.json();
+
+    let merged = 0, skipped = 0, addedSnapsTotal = 0;
+    for (const [tag, snaps] of Object.entries(history)) {
+      if (!Array.isArray(snaps) || snaps.length === 0) continue;
+
+      // 로컬에 없는 플레이어는 건너뜀
+      if (!watchlist[tag]) { skipped++; continue; }
+
+      const p = watchlist[tag];
+
+      // ✅ Bug2 수정: 기존 타임스탬프를 ISO 문자열 Set으로 관리
+      // localStorage의 t는 ms숫자, GitHub의 t는 ISO문자열 → 둘 다 ISO로 통일
+      const existingIsoSet = new Set(
+        (p.fameHistory||[]).map(h => {
+          // 숫자면 ISO로 변환, 문자열이면 그대로
+          return typeof h.t === 'number' ? new Date(h.t).toISOString() : h.t;
+        })
+      );
+
+      let addedSnaps = 0;
+      for (const snap of snaps) {
+        if (snap.fame === null || snap.fame === undefined) continue; // null 스냅샷 건너뜀
+        if (existingIsoSet.has(snap.t)) continue; // 중복 건너뜀
+
+        const ts = new Date(snap.t).getTime();
+        p.fameHistory.push({
+          fame: snap.fame, rank: snap.rank,
+          cashouts: snap.cashouts, t: ts,
+        });
+        existingIsoSet.add(snap.t);
+        addedSnaps++;
+      }
+
+      if (addedSnaps > 0) {
+        p.fameHistory.sort((a,b) => a.t - b.t);
+        p.fameHistory = p.fameHistory.slice(-200);
+        addedSnapsTotal += addedSnaps;
+      }
+
+      // 최신값 갱신
+      const validSnaps = p.fameHistory.filter(h => h.fame != null);
+      if (validSnaps.length > 0) {
+        const latest = validSnaps[validSnaps.length - 1];
+        p.currentFame = latest.fame;
+        p.currentRank = latest.rank;
+        p.currentCashouts = latest.cashouts;
+        p.lastChecked = latest.t;
+      }
+
+      // lastActive = 마지막으로 fame이 바뀐 시점
+      const allValid = p.fameHistory.filter(h => h.fame != null);
+      for (let i = allValid.length - 1; i >= 1; i--) {
+        if (allValid[i].fame !== allValid[i-1].fame) {
+          p.lastActive = allValid[i].t;
+          break;
+        }
+      }
+
+      // 닉네임 변경 감지
+      const ghLatest = snaps.filter(s => s.name).pop();
+      if (ghLatest?.name && ghLatest.name.toLowerCase() !== tag.toLowerCase()) {
+        if (!p.nicknameHistory) p.nicknameHistory = [];
+        const already = p.nicknameHistory.some(h => h.name.toLowerCase() === ghLatest.name.toLowerCase());
+        if (!already) p.nicknameHistory.unshift({ name: ghLatest.name, detectedAt: Date.now() });
+      }
+
+      merged++;
+    }
+
+    saveData();
+    renderGrid();
+    updateHeaderStats();
+    saveGhSettings();
+
+    const msg = `완료: ${merged}명 업데이트, +${addedSnapsTotal}개 스냅샷 (미등록 ${skipped}명 건너뜀)`;
+    ghStatus(msg, 'ok');
+    toast(msg, 'success');
+  } catch(e) {
+    ghStatus(`오류: ${e.message}`, 'err');
+    toast('GitHub 데이터 로드 실패: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '↓ 히스토리 가져오기';
+  }
+}
+
+// players.json에서 플레이어 목록 불러와서 watchlist에 추가
+async function githubLoadPlayers() {
+  const { owner, repo } = ghSettings();
+  if (!owner || !repo) { toast('GitHub 유저명과 레포명을 입력하세요', 'warn'); return; }
+
+  const btn = document.getElementById('gh-load-btn');
+  btn.disabled = true;
+  btn.textContent = '불러오는 중...';
+  ghStatus('players.json 로드 중...');
+
+  const url = `https://raw.githubusercontent.com/${owner}/${repo}/main/players.json?t=${Date.now()}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const players = await res.json();
+    if (!Array.isArray(players)) throw new Error('올바른 형식이 아님');
+
+    let added = 0, exists = 0;
+    for (const tag of players) {
+      if (watchlist[tag]) { exists++; continue; }
+      watchlist[tag] = {
+        tag, alias: '', status: 'watching', notes: '',
+        imageUrl: null, addedAt: Date.now(),
+        lastChecked: null, lastActive: null,
+        currentFame: null, currentRank: null, currentCashouts: null,
+        fameHistory: [], nicknameHistory: [],
+        notFound: false, checking: false,
+      };
+      added++;
+    }
+
+    saveData();
+    renderGrid();
+    updateHeaderStats();
+    saveGhSettings();
+
+    const msg = `완료: ${added}명 추가, ${exists}명 이미 존재`;
+    ghStatus(msg, 'ok');
+    toast(msg, 'success');
+
+    // 새로 추가된 플레이어 즉시 조회
+    if (added > 0) {
+      const newTags = players.filter(t => !Object.keys(watchlist).slice(0, -added).includes(t));
+      for (const tag of Object.keys(watchlist).slice(-added)) {
+        refreshSingle(tag);
+      }
+    }
+  } catch(e) {
+    ghStatus(`오류: ${e.message}`, 'err');
+    toast('players.json 로드 실패: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '↓ players.json 불러오기';
+  }
+}
+
+// players.json을 GitHub에 업로드 (PAT 필요)
+async function githubPushPlayers() {
+  const { owner, repo, pat } = ghSettings();
+  if (!owner || !repo) { toast('GitHub 유저명과 레포명을 입력하세요', 'warn'); return; }
+  if (!pat) { toast('PAT(Personal Access Token)이 필요합니다', 'warn'); return; }
+
+  const btn = document.getElementById('gh-push-btn');
+  btn.disabled = true;
+  btn.textContent = '업로드 중...';
+  ghStatus('players.json 업로드 중...');
+
+  const tags = Object.keys(watchlist);
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(tags, null, 2))));
+
+  try {
+    // 현재 파일 SHA 가져오기 (업데이트에 필요)
+    const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/players.json`, {
+      headers: { Authorization: `token ${pat}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    let sha = null;
+    if (getRes.ok) { const d = await getRes.json(); sha = d.sha; }
+
+    // 파일 업데이트
+    const putRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/players.json`, {
+      method: 'PUT',
+      headers: { Authorization: `token ${pat}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `watchlist update ${new Date().toISOString()}`,
+        content,
+        ...(sha ? { sha } : {}),
+      }),
+    });
+
+    if (!putRes.ok) {
+      const err = await putRes.json();
+      throw new Error(err.message || putRes.status);
+    }
+
+    saveGhSettings();
+    ghStatus(`players.json 업로드 완료 (${tags.length}명)`, 'ok');
+    toast(`players.json 동기화 완료 (${tags.length}명)`, 'success');
+  } catch(e) {
+    ghStatus(`업로드 실패: ${e.message}`, 'err');
+    toast('업로드 실패: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '↑ 플레이어 목록 동기화';
+  }
+}
+
+function saveGhSettings() {
+  const { owner, repo, pat } = ghSettings();
+  localStorage.setItem('tf_gh_settings', JSON.stringify({ owner, repo, pat }));
+}
+
+function loadGhSettings() {
+  try {
+    const raw = localStorage.getItem('tf_gh_settings');
+    if (!raw) return;
+    const { owner, repo, pat } = JSON.parse(raw);
+    if (owner) document.getElementById('gh-owner').value = owner;
+    if (repo)  document.getElementById('gh-repo').value  = repo;
+    if (pat)   document.getElementById('gh-pat').value   = pat;
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════
+//  KEYBOARD
+// ══════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal();
+    document.getElementById('history-overlay').style.display = 'none';
+    document.getElementById('io-modal-overlay').style.display = 'none';
+  }
+  if (e.key === 'Enter' && document.getElementById('modal-overlay').classList.contains('open')) {
+    if (document.activeElement.tagName !== 'TEXTAREA') savePlayer();
+  }
+  if (e.key === 'n' && !document.getElementById('modal-overlay').classList.contains('open') && document.activeElement.tagName !== 'INPUT') {
+    openAddModal();
+  }
+  if (e.key === 'r' && !document.getElementById('modal-overlay').classList.contains('open') && document.activeElement.tagName !== 'INPUT') {
+    refreshAll();
+  }
+});
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+loadData();
+loadGhSettings();
+document.getElementById('season-select').value = settings.season;
+document.getElementById('platform-select').value = settings.platform;
+document.getElementById('interval-select').value = settings.pollInterval;
+updateNotifToggle();
+updateHeaderStats();
+renderGrid();
+if (settings.pollInterval > 0) resetPoll();
+</script>
+</body>
+</html>
