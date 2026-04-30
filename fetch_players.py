@@ -6,13 +6,8 @@ from datetime import datetime, timezone
 SEASON   = "s10"
 PLATFORM = "crossplay"
 
-# GCS 직접 접근 (캐시 없음, 최우선)
-# 필드명: f=fame, r=rank, c=cashouts, name=name
 GCS_URL = "https://storage.googleapis.com/embark-discovery-leaderboard/leaderboard-crossplay-discovery-live.json"
-
-# 커뮤니티 API (폴백)
-# 필드명: fame, rank, cashouts, name
-API_URL = f"https://api.the-finals-leaderboard.com/v1/leaderboard/{SEASON}/{PLATFORM}"
+API_BASE = f"https://api.the-finals-leaderboard.com/v1/leaderboard/{SEASON}/{PLATFORM}"
 
 HISTORY_PATH  = "data/history.json"
 PLAYERS_PATH  = "players.json"
@@ -29,97 +24,112 @@ def save_json(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
 
-def find_player_exact(entries, tag):
-    """완전 일치만. 대소문자 무시."""
-    tag_lower = tag.lower()
-    return next((e for e in entries if e.get("name","").lower() == tag_lower), None)
+def find_exact(entries, tag):
+    tag_lower = tag.lower().strip()
+    for e in entries:
+        name = e.get("name", "").lower().strip()
+        if name == tag_lower:
+            return e
+    return None
 
-def extract_fields(entry, source):
-    """소스에 따라 올바른 필드명으로 값 추출."""
-    if entry is None:
-        return None, None, None, None
-    if source == "GCS":
-        # GCS 필드: f, r, c, name
-        fame     = entry.get("f")
-        rank     = entry.get("r")
-        cashouts = entry.get("c")
-    else:
-        # API 필드: fame, rank, cashouts
-        fame     = entry.get("fame") if entry.get("fame") is not None else entry.get("rankScore")
-        rank     = entry.get("rank")
-        cashouts = entry.get("cashouts") if entry.get("cashouts") is not None else entry.get("totalCashouts")
-    api_name = entry.get("name")
-    return fame, rank, cashouts, api_name
+def extract_gcs(entry):
+    """GCS 필드: f=fame, r=rank, c=cashouts"""
+    if not entry:
+        return None, None, None
+    return entry.get("f"), entry.get("r"), entry.get("c")
+
+def extract_api(entry):
+    """API 필드: fame/rankScore, rank, cashouts/totalCashouts"""
+    if not entry:
+        return None, None, None
+    fame = entry.get("fame") if entry.get("fame") is not None else entry.get("rankScore")
+    rank = entry.get("rank")
+    cashouts = entry.get("cashouts") if entry.get("cashouts") is not None else entry.get("totalCashouts")
+    return fame, rank, cashouts
 
 def fetch_gcs():
-    print("  [GCS] 직접 접근 시도...")
+    print("  [GCS] 접근 시도...")
     resp = requests.get(GCS_URL, timeout=30)
     resp.raise_for_status()
     data = resp.json()
     if isinstance(data, dict):
-        entries = data.get("data") or data.get("leaderboard") or data.get("entries") or data.get("players")
+        entries = None
+        for v in data.values():
+            if isinstance(v, list) and len(v) > 0:
+                entries = v
+                break
         if entries is None:
-            for v in data.values():
-                if isinstance(v, list) and len(v) > 0:
-                    entries = v
-                    break
+            entries = data
     else:
         entries = data
     if not isinstance(entries, list) or len(entries) == 0:
-        raise ValueError("GCS 응답에서 리스트 찾기 실패")
+        raise ValueError("GCS 리스트 없음")
     print(f"  [GCS] 성공: {len(entries)}명")
-    return entries, "GCS"
+    return entries
 
-def fetch_api():
-    print("  [API] 커뮤니티 API 시도...")
-    resp = requests.get(API_URL, timeout=20)
+def fetch_api_single(tag):
+    """커뮤니티 API로 특정 플레이어 조회"""
+    url = f"{API_BASE}?name={requests.utils.quote(tag)}"
+    resp = requests.get(url, timeout=15)
     resp.raise_for_status()
     data = resp.json()
     entries = data.get("data", data) if isinstance(data, dict) else data
-    if not isinstance(entries, list) or len(entries) == 0:
-        raise ValueError("API 응답이 비어있음")
-    print(f"  [API] 성공: {len(entries)}명")
-    return entries, "API"
-
-def fetch_leaderboard():
-    try:
-        return fetch_gcs()
-    except Exception as e:
-        print(f"  [GCS] 실패: {e}")
-        try:
-            return fetch_api()
-        except Exception as e2:
-            raise RuntimeError(f"GCS·API 모두 실패: {e2}")
+    if not isinstance(entries, list):
+        return None
+    # 완전 일치 우선
+    tag_lower = tag.lower().strip()
+    exact = next((e for e in entries if e.get("name","").lower().strip() == tag_lower), None)
+    if exact:
+        return exact, "API"
+    # 없으면 첫 번째 결과
+    if entries:
+        return entries[0], "API-partial"
+    return None, None
 
 def main():
     players = load_json(PLAYERS_PATH, [])
     if not players:
         print("players.json이 비어있음. 종료.")
         return
-    print(f"추적 대상 ({len(players)}명): {players}")
+    print(f"추적 대상 ({len(players)}명)")
 
+    # GCS 전체 리더보드 로드 (실패해도 계속)
+    gcs_entries = None
     try:
-        entries, source = fetch_leaderboard()
+        gcs_entries = fetch_gcs()
     except Exception as e:
-        print(f"리더보드 로드 실패: {e}")
-        return
+        print(f"  [GCS] 실패: {e} → 전체 API 폴백")
 
     history = load_json(HISTORY_PATH, {})
     now_iso = datetime.now(timezone.utc).isoformat()
     updated = []
-    not_found_list = []
+    not_found = []
 
     for tag in players:
-        entry = find_player_exact(entries, tag)
-        fame, rank, cashouts, api_name = extract_fields(entry, source)
+        fame, rank, cashouts, api_name, source = None, None, None, None, None
 
-        if not entry:
-            not_found_list.append(tag)
-            print(f"  미등재: {tag}")
-            continue
+        # 1. GCS 완전 일치 시도
+        if gcs_entries:
+            entry = find_exact(gcs_entries, tag)
+            if entry:
+                fame, rank, cashouts = extract_gcs(entry)
+                api_name = entry.get("name")
+                source = "GCS"
+
+        # 2. GCS 실패 시 API 개별 조회
+        if fame is None:
+            try:
+                result = fetch_api_single(tag)
+                if result and result[0]:
+                    entry, source = result
+                    fame, rank, cashouts = extract_api(entry)
+                    api_name = entry.get("name")
+            except Exception as e:
+                print(f"  [API] {tag} 조회 실패: {e}")
 
         if fame is None:
-            print(f"  ⚠ fame없음: {tag}")
+            not_found.append(tag)
+            print(f"  미등재: {tag}")
             continue
 
         snap = {
@@ -140,14 +150,12 @@ def main():
             history[tag] = history[tag][-MAX_SNAPSHOTS:]
             msg = f"{tag}: {prev_fame} → {fame} (rank={rank}) [{source}]"
             updated.append(msg)
-            print(f"  ✓ 변화: {msg}")
+            print(f"  ✓ {msg}")
         else:
             print(f"  변화없음: {tag} fame={fame} [{source}]")
 
     save_json(HISTORY_PATH, history)
-    print(f"\n완료. 변화 {len(updated)}건 / 미등재 {len(not_found_list)}명 / 전체 {len(players)}명")
-    if not_found_list:
-        print(f"  미등재: {not_found_list}")
+    print(f"\n완료. 변화 {len(updated)}건 / 미등재 {len(not_found)}명 / 전체 {len(players)}명")
 
 if __name__ == "__main__":
     main()
