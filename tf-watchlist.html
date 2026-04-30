@@ -1721,6 +1721,21 @@ function openIOModal(mode) {
       try {
         const parsed = JSON.parse(textarea.value);
         const count = Object.keys(parsed).length;
+        // fameHistory 중복 제거 (같은 fame 연속 제거)
+        for (const tag of Object.keys(parsed)) {
+          const p = parsed[tag];
+          if (Array.isArray(p.fameHistory)) {
+            const deduped = [];
+            let lastFame = null;
+            for (const h of p.fameHistory) {
+              if (h.fame == null) continue;
+              if (h.fame === lastFame) continue;
+              deduped.push(h);
+              lastFame = h.fame;
+            }
+            p.fameHistory = deduped;
+          }
+        }
         Object.assign(watchlist, parsed);
         saveData();
         renderGrid();
