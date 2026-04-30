@@ -17,13 +17,13 @@ tf-watchlist/
 ## 사용 방법
 
 1. `players.json`에 추적할 Embark 태그 추가
-2. GitHub Actions가 15분마다 자동 실행
+2. GitHub Actions가 5분마다 자동 실행
 3. HTML 앱에서 GitHub 유저명/레포명 입력 후 "히스토리 가져오기"
 
 ## players.json 형식
 
 ```json
-["NL#4631", "OP#8009"]
+["WarDoctor#1234", "Oscar#2345"]
 ```
 
 ## GitHub Actions 권한 설정
