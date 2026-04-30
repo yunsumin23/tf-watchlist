@@ -1012,9 +1012,12 @@ async function refreshAll() {
       const newRank = data.rank ?? null;
       const newCashouts = data.cashouts ?? data.totalCashouts ?? null;
 
-      // Detect activity
+      // Detect activity - lastActive = 마지막 확인 시각 (실제 플레이 시점에 더 가까움)
       if (prevFame !== null && newFame !== prevFame) {
-        p.lastActive = Date.now();
+        // 마지막 확인 시각을 기준으로 설정 (지금이 아니라 이전 체크 시점)
+        // 실제 활동은 lastChecked ~ 지금 사이에 발생한 것
+        p.lastActive = p.lastChecked || Date.now();
+        p.lastActiveDetected = Date.now(); // 감지 시각도 별도 저장
         activatedPlayers.push(tag);
       }
 
@@ -1093,7 +1096,8 @@ async function refreshSingle(tag) {
     const newCashouts = data.cashouts ?? data.totalCashouts ?? null;
 
     if (prevFame !== null && newFame !== prevFame) {
-      p.lastActive = Date.now();
+      p.lastActive = p.lastChecked || Date.now();
+      p.lastActiveDetected = Date.now();
       if (settings.notifications) sendNotification(`${tag} 활동 감지됨!`);
     }
 
@@ -1585,6 +1589,7 @@ function getActivityHtml(p) {
     textHtml = '<span class="never">활동 미감지</span>';
   } else {
     const elapsed = now - p.lastActive;
+    const elapsedDetected = p.lastActiveDetected ? now - p.lastActiveDetected : elapsed;
     const mins = Math.floor(elapsed / 60000);
     const hrs = Math.floor(mins / 60);
     const days = Math.floor(hrs / 24);
@@ -1595,12 +1600,22 @@ function getActivityHtml(p) {
     else if (hrs < 24) timeStr = `${hrs}시간 ${mins%60}분 전`;
     else timeStr = `${days}일 전`;
 
-    if (elapsed < 30 * 60 * 1000) {
+    // 감지 시각과 활동 추정 시각이 10분 이상 차이나면 범위로 표시
+    const gap = p.lastActiveDetected ? p.lastActiveDetected - p.lastActive : 0;
+    const gapMins = Math.floor(gap / 60000);
+
+    if (elapsed < 30 * 60 * 1000 && gapMins < 10) {
       dotClass = 'recent';
       textHtml = `<span class="active-time">▶ ${timeStr} 활동 감지</span>`;
-    } else if (elapsed < 24 * 60 * 60 * 1000) {
+    } else if (elapsed < 30 * 60 * 1000) {
+      dotClass = 'recent';
+      textHtml = `<span class="active-time">▶ ${timeStr}~${Math.floor(elapsedDetected/60000)}분 전 사이 활동</span>`;
+    } else if (elapsed < 24 * 60 * 60 * 1000 && gapMins < 10) {
       dotClass = 'today';
       textHtml = `<span class="today-time">${timeStr} 활동 감지</span>`;
+    } else if (elapsed < 24 * 60 * 60 * 1000) {
+      dotClass = 'today';
+      textHtml = `<span class="today-time">${timeStr}~${Math.floor(elapsedDetected/60000)}분 전 사이 활동</span>`;
     } else {
       textHtml = `<span style="opacity:0.5;">${timeStr} 활동 감지</span>`;
     }
@@ -1807,9 +1822,14 @@ async function githubPull() {
       );
 
       let addedSnaps = 0;
+      // fame 기준으로 정렬된 스냅샷만 추가 (중복 완전 차단)
       for (const snap of snaps) {
-        if (snap.fame === null || snap.fame === undefined) continue; // null 스냅샷 건너뜀
-        if (existingIsoSet.has(snap.t)) continue; // 중복 건너뜀
+        if (snap.fame === null || snap.fame === undefined) continue;
+        if (existingIsoSet.has(snap.t)) continue;
+
+        // 현재까지 추가된 것 중 마지막 fame과 같으면 건너뜀
+        const lastAdded = p.fameHistory.filter(h => h.fame != null).slice(-1)[0];
+        if (lastAdded && lastAdded.fame === snap.fame) continue;
 
         const ts = new Date(snap.t).getTime();
         p.fameHistory.push({
@@ -1994,6 +2014,19 @@ function loadGhSettings() {
     if (pat)   document.getElementById('gh-pat').value   = pat;
   } catch(e) {}
 }
+
+// ── 탭 활성화 시 즉시 갱신 ─────────────────────────
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    // 마지막 조회로부터 1분 이상 지났으면 즉시 갱신
+    const lastPollEl = document.getElementById('last-poll-time').textContent;
+    refreshAll();
+    // 카운트다운도 리셋
+    if (settings.pollInterval > 0) {
+      pollSecondsLeft = settings.pollInterval * 60;
+    }
+  }
+});
 
 // ══════════════════════════════════════════════════════
 //  KEYBOARD
