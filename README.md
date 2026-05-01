@@ -1,6 +1,6 @@
 # THE FINALS — WATCHLIST
 
-핵쟁이 플레이어 추적 도구. GitHub Actions가 15분마다 Embark 리더보드를 자동 폴링하여 `data/history.json`에 기록합니다.
+핵쟁이 플레이어 추적 도구. GitHub Actions가 5분마다 Embark 리더보드를 자동 폴링하여 `data/history.json`에 기록합니다.
 
 ## 파일 구조
 
