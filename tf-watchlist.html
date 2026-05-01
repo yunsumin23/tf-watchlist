@@ -97,7 +97,7 @@ select:focus{outline:none;border-color:var(--accent-dim);}
 .card-name-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .card-tag{font-family:var(--mono);font-size:13px;color:var(--text-bright);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .card-alias{font-size:11px;color:var(--text);opacity:0.6;white-space:nowrap;}
-.club-tag{font-family:var(--mono);font-size:10px;color:var(--amber);background:rgba(255,170,34,0.1);border:1px solid rgba(255,170,34,0.3);padding:1px 5px;border-radius:2px;flex-shrink:0;}
+.club-tag{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);padding:2px 6px;border-radius:3px;flex-shrink:0;letter-spacing:0.5px;}
 .status-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
 .status-badge{font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:2px;font-weight:700;letter-spacing:0.5px;}
 .badge-confirmed{background:var(--danger-dim);color:var(--danger);border:1px solid var(--danger);}
@@ -108,6 +108,10 @@ select:focus{outline:none;border-color:var(--accent-dim);}
 .card-actions{display:flex;gap:4px;flex-shrink:0;}
 .icon-btn{background:transparent;border:none;color:var(--text);cursor:pointer;padding:4px;border-radius:3px;font-size:12px;opacity:0.5;transition:opacity .15s,color .15s;}
 .icon-btn:hover{opacity:1;color:var(--text-bright);}
+
+/* card-top 버튼 별도 행 */
+.card-header{padding:10px 12px 0;display:flex;align-items:flex-start;gap:10px;}
+.card-actions-row{padding:4px 8px;display:flex;justify-content:flex-end;gap:2px;border-bottom:1px solid var(--border);}
 
 /* platform names */
 .platform-row{padding:0 12px 6px;display:flex;gap:8px;flex-wrap:wrap;}
@@ -141,11 +145,12 @@ select:focus{outline:none;border-color:var(--accent-dim);}
 .today-time{color:var(--amber);}
 .card-notes-preview{font-size:10px;color:var(--text);opacity:0.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
 
-/* card bottom */
-.card-bottom{border-top:1px solid var(--border);padding:6px 12px;display:flex;justify-content:space-between;align-items:center;}
-.card-links{display:flex;gap:8px;}
-.card-link{font-family:var(--mono);font-size:10px;color:var(--text);opacity:0.5;text-decoration:none;display:flex;align-items:center;gap:3px;transition:opacity .15s,color .15s;}
-.card-link:hover{opacity:1;color:var(--accent);}
+/* card bottom - bigger links */
+.card-bottom{border-top:1px solid var(--border);padding:0;display:flex;}
+.card-link{flex:1;font-family:var(--mono);font-size:12px;color:var(--text);opacity:0.6;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 6px;transition:all .15s;border-right:1px solid var(--border);}
+.card-link:last-child{border-right:none;}
+.card-link:hover{opacity:1;color:var(--accent);background:var(--bg2);}
+.card-last-check{font-family:var(--mono);font-size:9px;color:var(--text);opacity:0.3;padding:0 8px;display:flex;align-items:center;}
 
 /* CHECKING RING */
 .checking-ring{display:inline-block;width:10px;height:10px;border:2px solid var(--accent-dim);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;}
@@ -270,6 +275,7 @@ textarea.form-input{resize:vertical;min-height:60px;}
   <span id="poll-countdown" class="paused">— 수동 —</span>
   <button class="btn" id="events-btn" onclick="toggleEventsFeed()" title="이벤트 피드 (닉변/클랜변경/밴 의심)">📡 이벤트</button>
   <span id="events-status">이벤트: 대기중</span>
+  <span id="api-source" style="font-family:var(--mono);font-size:10px;color:var(--accent);opacity:0.7;margin-left:4px;">소스: —</span>
 </div>
 
 <!-- GITHUB BAR -->
@@ -410,6 +416,8 @@ textarea.form-input{resize:vertical;min-height:60px;}
 //  CONSTANTS
 // ══════════════════════════════════════════════════════
 const API_BASE = 'https://api.ogclub.s4nt0s.eu';
+const GCS_URL = 'https://storage.googleapis.com/embark-discovery-leaderboard/leaderboard-crossplay-discovery-live.json';
+const COMMUNITY_API = 'https://api.the-finals-leaderboard.com/v1/leaderboard/s10/crossplay';
 const SEASON_ID = 10;
 
 const LEAGUES = {
@@ -514,18 +522,85 @@ function saveGhSettings() {
 // ══════════════════════════════════════════════════════
 let leaderboardCache = null;
 let leaderboardCacheTime = 0;
+let lastApiSource = '—';
 
 async function fetchLeaderboard() {
-  // Cache for 60 seconds to avoid hammering
   if (leaderboardCache && Date.now() - leaderboardCacheTime < 60000) {
     return leaderboardCache;
   }
-  const res = await fetch(`${API_BASE}/leaderboard`, { signal: AbortSignal.timeout(15000) });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const json = await res.json();
-  leaderboardCache = json.data;
-  leaderboardCacheTime = Date.now();
-  return leaderboardCache;
+
+  // ① s4nt0s API (랭크 전용, 메인)
+  try {
+    const res = await fetch(`${API_BASE}/leaderboard`, { signal: AbortSignal.timeout(12000) });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data?.length > 0) {
+        leaderboardCache = json.data;
+        leaderboardCacheTime = Date.now();
+        lastApiSource = 'ogclub';
+        updateApiSourceDisplay();
+        return leaderboardCache;
+      }
+    }
+  } catch(e) { console.warn('[API1] s4nt0s 실패:', e.message); }
+
+  // ② GCS 직접 접근 (폴백 1)
+  try {
+    const res = await fetch(GCS_URL, { signal: AbortSignal.timeout(10000) });
+    if (res.ok) {
+      const json = await res.json();
+      // GCS는 f=fame, r=rank 필드 — rankScore로 정규화
+      let entries = Array.isArray(json) ? json : (json.data || Object.values(json).find(v => Array.isArray(v)) || []);
+      if (entries.length > 0) {
+        const normalized = entries.map(e => ({
+          name: e.name || e.n,
+          rank: e.r ?? e.rank,
+          rankScore: e.f ?? e.fame ?? e.rankScore,
+          leagueNumber: e.leagueNumber ?? null,
+          steamName: e.steam || null,
+          change: e.or ? (e.r - e.or) : 0,
+        })).filter(e => e.name && e.rankScore);
+        if (normalized.length > 100) {
+          leaderboardCache = normalized;
+          leaderboardCacheTime = Date.now();
+          lastApiSource = 'GCS';
+          updateApiSourceDisplay();
+          return leaderboardCache;
+        }
+      }
+    }
+  } catch(e) { console.warn('[API2] GCS 실패:', e.message); }
+
+  // ③ 커뮤니티 API (폴백 2)
+  try {
+    const res = await fetch(COMMUNITY_API, { signal: AbortSignal.timeout(12000) });
+    if (res.ok) {
+      const json = await res.json();
+      const entries = json.data ?? json;
+      if (Array.isArray(entries) && entries.length > 0) {
+        const normalized = entries.map(e => ({
+          name: e.name,
+          rank: e.rank,
+          rankScore: e.fame ?? e.rankScore ?? e.rankScore,
+          leagueNumber: null,
+          steamName: null,
+          change: 0,
+        }));
+        leaderboardCache = normalized;
+        leaderboardCacheTime = Date.now();
+        lastApiSource = '커뮤니티';
+        updateApiSourceDisplay();
+        return leaderboardCache;
+      }
+    }
+  } catch(e) { console.warn('[API3] 커뮤니티 실패:', e.message); }
+
+  throw new Error('모든 API 실패');
+}
+
+function updateApiSourceDisplay() {
+  const el = document.getElementById('api-source');
+  if (el) el.textContent = `소스: ${lastApiSource}`;
 }
 
 async function fetchPlayerGraph(embarkId) {
@@ -919,27 +994,27 @@ function updateCard(tag) {
   const ogclubUrl = `https://ogclub.s4nt0s.eu/graph/10/${encodeURIComponent(tag)}`;
 
   el.innerHTML = `
-    <div class="card-top">
+    <div class="card-header">
       <div class="card-avatar">
         ${avatarContent}
         ${getLeagueBadge(p.leagueNumber)}
       </div>
-      <div class="card-info">
-        <div class="card-name-row">
-          <span class="card-tag">${p.alias || tag}</span>
-          ${p.alias ? `<span class="card-alias">${tag}</span>` : ''}
-          ${p.clubTag ? `<span class="club-tag">[${p.clubTag}]</span>` : ''}
+      <div class="card-info" style="flex:1;min-width:0;padding-top:2px;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden;">
+          ${p.clubTag ? `<span class="club-tag" style="font-size:11px;padding:2px 6px;flex-shrink:0;">[${p.clubTag}]</span>` : ''}
+          <span class="card-tag" style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.alias || tag}</span>
+          ${p.alias ? `<span class="card-alias" style="font-size:10px;opacity:0.5;flex-shrink:0;">${tag}</span>` : ''}
         </div>
-        <div class="status-badges">
+        <div class="status-badges" style="margin-top:4px;">
           ${statusBadge}
           ${p.checking ? '<span class="checking-ring"></span>' : ''}
         </div>
       </div>
-      <div class="card-actions">
-        <button class="icon-btn" onclick="event.stopPropagation();openHistory('${tag}')" title="기록 보기">📊</button>
-        <button class="icon-btn" onclick="event.stopPropagation();openEditModal('${tag}')" title="편집">✏️</button>
-        <button class="icon-btn" onclick="event.stopPropagation();refreshSingle('${tag}')" title="개별 조회">🔄</button>
-      </div>
+    </div>
+    <div class="card-actions-row">
+      <button class="icon-btn" onclick="event.stopPropagation();openHistory('${tag}')" title="기록 보기">📊</button>
+      <button class="icon-btn" onclick="event.stopPropagation();openEditModal('${tag}')" title="편집">✏️</button>
+      <button class="icon-btn" onclick="event.stopPropagation();refreshSingle('${tag}')" title="개별 조회">🔄</button>
     </div>
     ${platformHTML}
     <div class="card-stats">
@@ -960,11 +1035,9 @@ function updateCard(tag) {
       <span class="card-notes-preview">${p.notes || ''}</span>
     </div>
     <div class="card-bottom">
-      <div class="card-links">
-        <a class="card-link" href="${davgUrl}" target="_blank" onclick="event.stopPropagation()">↗ davg25</a>
-        <a class="card-link" href="${ogclubUrl}" target="_blank" onclick="event.stopPropagation()">↗ ogclub</a>
-      </div>
-      <span style="font-family:var(--mono);font-size:9px;color:var(--text);opacity:0.3;">${p.lastChecked ? new Date(p.lastChecked).toLocaleTimeString('ko-KR') : '—'}</span>
+      <a class="card-link" href="${davgUrl}" target="_blank" onclick="event.stopPropagation()">↗ davg25</a>
+      <a class="card-link" href="${ogclubUrl}" target="_blank" onclick="event.stopPropagation()">↗ ogclub</a>
+      <span class="card-last-check">${p.lastChecked ? new Date(p.lastChecked).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}) : '—'}</span>
     </div>
   `;
 }
